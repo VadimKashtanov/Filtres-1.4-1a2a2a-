@@ -15,12 +15,13 @@ static __device__ float filtre_device_shared(float * x, float * dif_x, float * f
 	s = s/8-1;
 	d = d/7-1;
 
-	float y = 2*expf(-s*s -d*d)-1;
+	float y = expf(-s*s -d*d);
 
-	locd_s[0] = -4*y*s;
-	locd_d[0] = -4*y*d;
+	locd_s[0] = -2*2*s*y;
+	locd_d[0] = -2*2*d*y;
 
-	return y;
+	return 2*y-1;
+	//return y;
 };
 
 static __global__ void kerd_filtre_shared(	//	2 version : 1 stricte et une non stricte

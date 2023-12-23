@@ -23,6 +23,7 @@ static __device__ float filtre_device(float * x, float * dif_x, float * f, float
 	locd_d[0] = -2*2*d*y;
 
 	return 2*y-1;
+	//return y;
 };
 
 static __global__ void kerd_filtre_naive(	//	2 version : 1 stricte et une non stricte

@@ -2,23 +2,31 @@
 
 #include "../impl_tmpl/tmpl_etc.cu"
 
-float pourcent_masque_nulle[C] = {0};
-
-float * alpha_moyen__paquets16X500 = de_a(5e-4, 4e-5, C);
-float * alpha_initialisation = de_a(1e-3, 1e-4, C);
-
-float alpha_zeropoids[C] = {
-	5e-3,
-	0,0,0,0,0,0,0,0,0, 0, 0, 0, 0, 0, 0
+float pourcent_masque_nulle[C] = {
+	0,
+	0,
+	0,0,
+	0,0,0,
+	0,0,0,0,
+	0,0,0,
+	0,0,0,0,
+	0,0,0,0,
+	0
 };
 
-float * alpha_initialisation__PRIXS = de_a(1e-3, 1e-4, C);
-
-float alpha_zeropoids__PRIXS[C] = {
-	3e-2,
-	0,0,0,0,0,0,0,0,0, 0, 0, 0, 0, 0, 0
+float pourcent_masque[C] = {
+	0.,
+	0.20,
+	0.10,0.10,
+	0.10,0.10,0.10,
+	0.10,0.10,0.10,0.10,
+	0.10,0.10,0.10,
+	0.0,0.0,0.0,0.0,
+	0,0,0,0,
+	0
 };
 
+float * alpha = de_a(1e-3, 1e-3, C);
 
 PAS_OPTIMISER()
 int main(int argc, char ** argv) {
@@ -35,24 +43,34 @@ int main(int argc, char ** argv) {
 	//===============
 	titre("  Programme Generale  ");
 
-	uint ST[C] = {
+	/*uint ST[C] = {
 		512,
-		256, 256,
+		256,
 		128, 128,
-		64, 64, 64, 64, 64, 64,
-		32, 32,
-		16, 16,
-		8, 8,
-		4, 4,
+		64, 64, 64,
+		32, 32, 32, 32,
+		16, 16, 16,
+		8, 8, 8, 8,
+		4, 4, 4, 4,
 		1
 	};
+	uint activations[C] = {TANH};
 	uint bloques      = 64;
 	uint f_par_bloque =  8;
 	uint lignes[bloques] = {
+		0,0,0,0,0,0,0,0,0,0,0,0,
+	    1,1,1,1,1,
+	    2,2,2,2,2,
+	    3,3,3,3,
+	    4,4,4,4,4,
+	    5,5,5,6,6,7,7,7,7,8,9,9,9,9,10,11,12,13,14,
+	    18,19,20,21,21,21,22,23,23,24,25,
+	    28,
+	    31,31
 	};
-	Mdl_t * mdl = cree_mdl(ST, bloques, f_par_bloque, lignes);
+	Mdl_t * mdl = cree_mdl(ST, activations, bloques, f_par_bloque, lignes);*/
 
-	//Mdl_t * mdl = ouvrire_mdl("mdl.bin");
+	Mdl_t * mdl = ouvrire_mdl("mdl.bin");
 
 	plumer_mdl(mdl);
 
@@ -69,71 +87,51 @@ int main(int argc, char ** argv) {
 	DEPART_CHRONO(chrono)
 	mdl_aller_retour(mdl, t0, t1, 3);
 	float sec_opti = VALEUR_CHRONO(chrono);
-	uint OPTIMISATIONS = 10*100;
+	uint OPTIMISATIONS = 150*1500;
 	printf("\033[3;92;m1 opti = %+f s, donc %i*%+f = %+f s = %+f mins\033[0m\n",
 		sec_opti,
 		OPTIMISATIONS, sec_opti,
 		OPTIMISATIONS * sec_opti,
 		OPTIMISATIONS * sec_opti / 60.0);
-	//mdl_plume_grad(mdl, t0, t1);
 	//
-	FOR(0, rep, 100) {
-		/*FOR(0, i, 3) {
+	uint REP = 150;
+	FOR(0, rep, REP) {
+		FOR(0, i, 1) {
 			optimisation_mini_packet(
 				mdl,
-				t0, t1, 16*400,
-				alpha_initialisation, 1.0,
-				RMSPROP, 1000,
-				//pourcent_masque_simple);
-				pourcent_masque_nulle);
+				t0, t1, 16*200,
+				alpha, 1.0,
+				RMSPROP, 1500,
+				pourcent_masque);
 			printf("SCORE GENERALE : pred = %f\n", 100*mdl_pred(mdl, t0, t1, 3));
 			mdl_gpu_vers_cpu(mdl);
 			ecrire_mdl(mdl, "mdl.bin");
 		}
-		FOR(0, i, 2) {
+		/*FOR(0, i, 5) {
 			optimisation_mini_packet(
 				mdl,
-				t0, t1, 16*200,
-				alpha_zeropoids, 1.0,
-				RMSPROP, 200,
+				t0, t1, 16*800,
+				alpha, 1.0,
+				RMSPROP, 1500,
 				//pourcent_masque_simple);
-				pourcent_masque_nulle);
+				pourcent_masque);
 			printf("SCORE GENERALE : pred = %f\n", 100*mdl_pred(mdl, t0, t1, 3));
 			mdl_gpu_vers_cpu(mdl);
 			ecrire_mdl(mdl, "mdl.bin");
 		}*/
-		/*FOR(0, i, 10) {
-			optimisation_mini_packet(
-				mdl,
-				t0, t1, 16*40,
-				alpha_zeropoids, 1.0,
-				RMSPROP, 30,
-				//pourcent_masque_simple);
-				pourcent_masque_nulle);
-			printf("SCORE GENERALE : pred = %f\n", 100*mdl_pred(mdl, t0, t1, 3));
-			mdl_gpu_vers_cpu(mdl);
-			ecrire_mdl(mdl, "mdl.bin");
-		}
-		*/
 		//
-		optimiser(
-			mdl,
-			t0, t1,
-			alpha_initialisation__PRIXS, 1.0,
-			SGD, 300,
-			pourcent_masque_nulle);
 		/*optimiser(
 			mdl,
 			t0, t1,
-			alpha_zeropoids__PRIXS, 1.0,
-			RMSPROP, 100,
+			alpha, 1.0,
+			RMSPROP, 2000,
 			pourcent_masque_nulle);*/
 		//
 		mdl_gpu_vers_cpu(mdl);
 		ecrire_mdl(mdl, "mdl.bin");
 		printf("SCORE GENERALE : pred = %f\n", 100*mdl_pred(mdl, t0, t1, 3));
 		printf("===================================================\n");
-		printf("==================TERMINE %i/%i=======================\n", rep+1, 100);
+		printf("==================TERMINE %i/%i=======================\n", rep+1, REP);
 		printf("===================================================\n");
 	}
 	//

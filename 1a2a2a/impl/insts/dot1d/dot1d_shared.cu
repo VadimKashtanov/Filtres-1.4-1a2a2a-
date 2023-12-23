@@ -3,6 +3,7 @@
 #define BLOQUE 16
 
 static __global__ void kerd_stricte(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -38,12 +39,13 @@ static __global__ void kerd_stricte(	//	2 version : 1 stricte et une non stricte
 	if (thy == 0) __partage__b[thx] = p[_y*(X+1) + (X+1-1)];
 	__syncthreads();
 
-	float a = ACTIV((s + __partage__b[thx]));
+	float a = ACTIV(ACTIVATION, (s + __partage__b[thx]));
 	   y[(depart+_t)*Y + _y] = a;
-	locd[(depart+_t)*Y + _y] = dACTIV(s,a);
+	locd[(depart+_t)*Y + _y] = dACTIV(ACTIVATION, s,a);
 };
 
 void nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -52,6 +54,7 @@ void nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
 {
 	if (X%BLOQUE==0 && Y%BLOQUE==0 && T%BLOQUE==0) {
 		kerd_stricte<<<dim3(KERD(Y, BLOQUE), KERD(T, BLOQUE)), dim3(BLOQUE, BLOQUE)>>>(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -60,6 +63,7 @@ void nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
 		ATTENDRE_CUDA();
 	} else {
 		nvidia_dot1d_naive(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -71,6 +75,7 @@ void nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
 //	============================= Derivation ==============================
 
 static __global__ void kerd_stricte_deriv(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -120,6 +125,7 @@ static __global__ void kerd_stricte_deriv(	//	2 version : 1 stricte et une non s
 };
 
 void d_nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -131,6 +137,7 @@ void d_nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
 {
 	if (X%BLOQUE==0 && Y%BLOQUE==0 && T%BLOQUE==0) {
 		kerd_stricte_deriv<<<dim3(KERD(Y, BLOQUE), KERD(T, BLOQUE)), dim3(BLOQUE, BLOQUE)>>>(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -142,6 +149,7 @@ void d_nvidia_dot1d_shared(	//	2 version : 1 stricte et une non stricte
 		ATTENDRE_CUDA();
 	} else {
 		d_nvidia_dot1d_naive(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,

@@ -1,33 +1,45 @@
 #! /usr/bin/python3
 
-def normaliser(lst):
-	_max = max(lst)
-	_min = min(lst)
-	return [(i-_min)/(_max-_min) for i in lst], _max, _min
+ema = lambda l,K,ema=0: [ema:=(ema*(1-1/K) + e/K) for e in l]
 
-def lire_eurousd(fichier, col=2):
-	with open(fichier, 'r') as co:
-		lignes = co.read().replace('\n\n','').split('\n')[1:]
-		return [float(ligne.split('\t')[col]) for ligne in lignes]
-
-def lire_btcusdt(fichier, col=3):
-	with open(fichier, 'r') as co:
-		lignes = co.read().replace('\n\n','').split('\n')[2:-2]
-		return [float(ligne.split(',')[col]) for ligne in lignes][::-1]
-		
 from sys import argv
 
-#'EURUSD_H1.csv' : [1:] col=2  '\t'
-#Binance_BTCUSDT_1h.csv : [2:] col=3  ','
-
-#prixs = lire_eurousd(argv[1])
-prixs = lire_btcusdt(argv[1])
+prixs         = argv[1]
+sortie_prixs  = "prixs.bin"
+sortie_volume = "volumes.bin"
+sortie_macd   = "macds.bin"
 
 import struct as st
 
-#"prixs.bin"
-with open(argv[2], "wb") as co:
-	#co.write(st.pack( 'ffI', _max, _min, len(prixs) ))
-	print(len(prixs))
+#	======== Lecture .csv ======= 
+with open(prixs, "r") as co:
+	text = co.read().split('\n')
+	del text[0]
+	del text[0]
+	del text[-1]
+	lignes = [l.split(',') for l in text]
+	infos = [(float(Open), float(Volume_BTC), float(Volume_USDT)) for Unix,Date,Symbol,Open,High,Low,Close,Volume_BTC,Volume_USDT,tradecount in lignes]
+
+#	========= Ecriture ==========
+prixs   = [p       for p,_,_   in infos]
+volumes = [vb*p-vu for p,vb,vu in infos]
+ema12 = ema(prixs, K=12)
+ema26 = ema(prixs, K=26)
+macd  = [a-b for a,b in zip(ema12, ema26)]
+ema9_macd = ema(macd, K=9)
+histo_macd = [a-b for a,b in zip(macd, ema9_macd)]
+
+with open(sortie_prixs, "wb") as co:
+	print(f"LEN prixs   = {len(prixs)}")
 	co.write(st.pack('I', len(prixs)))
 	co.write(st.pack('f'*len(prixs), *prixs))
+
+with open(sortie_volume, "wb") as co:
+	print(f"LEN volumes = {len(volumes)}")
+	co.write(st.pack('I', len(volumes)))
+	co.write(st.pack('f'*len(volumes), *volumes))
+
+with open(sortie_macd, "wb") as co:
+	print(f"LEN macd    = {len(histo_macd)}")
+	co.write(st.pack('I', len(histo_macd)))
+	co.write(st.pack('f'*len(histo_macd), *histo_macd))

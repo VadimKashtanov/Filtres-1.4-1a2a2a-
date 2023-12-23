@@ -1,11 +1,15 @@
 #pragma once
 
-#define ACTIV(s) tanh(s)
-#define dACTIV(s,a) (1-a*a)
+#define TANH 0
+#define LOGISTIC 1
+
+#define ACTIV(mode, s) (mode==0 ? tanh(s) : (1/(1+expf(-s))))
+#define dACTIV(mode, s,a) (mode == 0 ? (1-a*a) : (a*(a-1)))
 
 #include "marchee.cuh"
 
 void intel_dot1d(
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -13,6 +17,7 @@ void intel_dot1d(
 	float * locd);
 
 void d_intel_dot1d(
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -25,6 +30,7 @@ void d_intel_dot1d(
 //	============================================
 
 void nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -32,6 +38,7 @@ void nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
 	float * locd);
 
 void nvidia_dot1d_shared(	//	2 versions : 1 stricte et une non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -39,6 +46,7 @@ void nvidia_dot1d_shared(	//	2 versions : 1 stricte et une non stricte
 	float * locd);
 
 void nvidia_dot1d_shared_2_16(	//	2 versions : 1 stricte et une non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -46,6 +54,7 @@ void nvidia_dot1d_shared_2_16(	//	2 versions : 1 stricte et une non stricte
 	float * locd);
 
 void nvidia_dot1d(
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -56,6 +65,7 @@ void nvidia_dot1d(
 //	============================================
 
 void d_nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -66,6 +76,7 @@ void d_nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
 	float * dp);
 
 void d_nvidia_dot1d_shared(	//	2 versions : 1 stricte et une non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -76,6 +87,7 @@ void d_nvidia_dot1d_shared(	//	2 versions : 1 stricte et une non stricte
 	float * dp);
 
 void d_nvidia_dot1d_shared_2_16(	//	2 versions : 1 stricte et une non stricte
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -86,6 +98,7 @@ void d_nvidia_dot1d_shared_2_16(	//	2 versions : 1 stricte et une non stricte
 	float * dp);
 
 void  d_nvidia_dot1d(
+	uint activation,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,

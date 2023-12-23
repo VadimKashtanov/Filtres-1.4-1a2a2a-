@@ -6,9 +6,18 @@ void verif_mdl_1e5() {
 	/*ASSERT(C == 3);
 	titre("Comparer MODEL 1e-5");
 	//
-	uint ST[C] = {256, 16, 1};
+	uint ST[C] = {
+		128,
+		16,
+		1
+	};
+	uint activations[C] = {
+		LOGISTIC,
+		TANH,
+		TANH
+	};
 	uint bloques      = 16;
-	uint f_par_bloque = 16;
+	uint f_par_bloque = 8;
 	uint lignes[bloques] = {
 		0,0,0,0,0,0,0,
 		1, 1,
@@ -18,7 +27,7 @@ void verif_mdl_1e5() {
 		8,
 		10
 	};
-	Mdl_t * mdl = cree_mdl(ST, bloques, f_par_bloque, lignes);
+	Mdl_t * mdl = cree_mdl(ST, activations, bloques, f_par_bloque, lignes);
 	//
 	uint plus_T = 16;
 	mdl_aller_retour(mdl, DEPART, DEPART+plus_T, 3);

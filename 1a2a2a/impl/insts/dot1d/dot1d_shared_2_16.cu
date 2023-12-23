@@ -15,6 +15,7 @@ en dX=p@dY.T
 #define BLOQUE_MAX 16
 
 static __global__ void kerd_stricte_16__shared2(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -50,12 +51,13 @@ static __global__ void kerd_stricte_16__shared2(	//	2 version : 1 stricte et une
 	if (thy == 0) __partage__b[thx] = p[_y*(X+1) + (X+1-1)];
 	__syncthreads();
 
-	float a = ACTIV((s + __partage__b[thx]));
+	float a = ACTIV(ACTIVATION, (s + __partage__b[thx]));
 	   y[(depart+_t)*Y + _y] = a;
-	locd[(depart+_t)*Y + _y] = dACTIV(s,a);
+	locd[(depart+_t)*Y + _y] = dACTIV(ACTIVATION, s,a);
 };
 
 void nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -65,6 +67,7 @@ void nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 	if (T%BLOQUE!=0) ERR("ATTENTION T%%16 != 0 (T=%i)", T);
 	if (X%BLOQUE==0 && Y%BLOQUE==0 && T%BLOQUE==0) {
 		kerd_stricte_16__shared2<<<dim3(KERD(Y, BLOQUE), KERD(T, BLOQUE)), dim3(BLOQUE, BLOQUE)>>>(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -73,6 +76,7 @@ void nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 		ATTENDRE_CUDA();
 	} else {
 		nvidia_dot1d_naive(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -135,6 +139,7 @@ void nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 
 
 static __global__ void kerd_stricte_16__shared2____dx(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -174,6 +179,7 @@ static __global__ void kerd_stricte_16__shared2____dx(	//	2 version : 1 stricte 
 
 
 static __global__ void kerd_stricte_32__shared2____dp(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -222,6 +228,7 @@ static __global__ void kerd_stricte_32__shared2____dp(	//	2 version : 1 stricte 
 };
 
 void d_nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -243,6 +250,7 @@ void d_nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 			dx,
 			dp);*/
 		kerd_stricte_16__shared2____dx<<<dim3(KERD(X, BLOQUE), KERD(T, BLOQUE)), dim3(BLOQUE, BLOQUE)>>>(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -252,6 +260,7 @@ void d_nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 			dx,
 			dp);
 		kerd_stricte_32__shared2____dp<<<dim3(KERD(X, BLOQUE_MAX), KERD(Y, BLOQUE_MAX), DIV(T,BLOQUE_MAX)), dim3(BLOQUE_MAX, BLOQUE_MAX,1)>>>(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -263,6 +272,7 @@ void d_nvidia_dot1d_shared_2_16(	//	2 version : 1 stricte et une non stricte
 		ATTENDRE_CUDA();
 	} else {
 		d_nvidia_dot1d_naive(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,

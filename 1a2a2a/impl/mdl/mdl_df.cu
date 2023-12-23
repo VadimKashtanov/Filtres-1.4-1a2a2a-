@@ -20,6 +20,7 @@ static void mdl_df_patron(
 	for (int c=C-1; c >= 1; c--) {
 		if (perceptron_mode == -1) {
 			d_intel_dot1d(
+				mdl->activation[c],
 				mdl->ST[c-1], mdl->ST[c],
 				t0, (t1-t0),
 				mdl->y[c-1], mdl->y[c],
@@ -30,6 +31,7 @@ static void mdl_df_patron(
 				mdl->dp[c]);
 		} else {
 			d_nvidia_dot1d(
+				mdl->activation[c],
 				mdl->ST[c-1], mdl->ST[c],
 				t0, (t1-t0),
 				mdl->y__d[c-1], mdl->y__d[c],

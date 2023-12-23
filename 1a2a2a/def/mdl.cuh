@@ -6,11 +6,12 @@
 #include "filtres.cuh"
 #include "S.cuh"
 
-#define C 20
+#define C 23
 
 typedef struct {
 	//	Structure
 	uint * ST, * ST__d;
+	uint * activation;
 
 	//	  Filtres
 	uint bloques, f_par_bloque;
@@ -45,7 +46,7 @@ typedef struct {
 } Mdl_t;
 
 //	Memoire ram & vram
-Mdl_t * cree_mdl(uint * ST, uint bloques, uint f_par_bloque, uint * lignes);
+Mdl_t * cree_mdl(uint * ST, uint * activation, uint bloques, uint f_par_bloque, uint * lignes);
 void liberer_mdl(Mdl_t * mdl);
 void mdl_verif(Mdl_t * mdl);
 void mdl_diff_f(Mdl_t * mdl);

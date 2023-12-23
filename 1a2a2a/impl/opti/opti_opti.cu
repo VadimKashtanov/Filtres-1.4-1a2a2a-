@@ -25,6 +25,7 @@ void __interne_optimiser(
 		//
 		if (methode == 0) opti_simple(mdl, alpha, div, masque);
 		if (methode == 1) opti_rmsprop(mdl, opti_classe.rmsprop, alpha, div, masque);
+		mdl_diff_f(mdl);
 		//
 		if (i % 10 == 0)
 			printf("%3.i/%3.i| perf=%+f%% score=%+f\n",

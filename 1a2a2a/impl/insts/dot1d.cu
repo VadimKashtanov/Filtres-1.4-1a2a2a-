@@ -3,6 +3,7 @@
 #include "../../impl_tmpl/tmpl_etc.cu"
 
 void intel_dot1d(
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -19,14 +20,15 @@ void intel_dot1d(
 				float __p = p[_y*(X+1)+k];
 				s += __x * __p;
 			}
-			float a = ACTIV(s);
+			float a = ACTIV(ACTIVATION, s);
 			y[(depart+t)*Y+_y]    = a;
-			locd[(depart+t)*Y+_y] = dACTIV(s, a);
+			locd[(depart+t)*Y+_y] = dACTIV(ACTIVATION, s, a);
 		}
 	}
 }
 
 void d_intel_dot1d(
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -90,6 +92,7 @@ void d_intel_dot1d(
 //	=========================================================
 
 void nvidia_dot1d(
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -99,6 +102,7 @@ void nvidia_dot1d(
 {
 	if (mode == 0) {
 		nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -106,6 +110,7 @@ void nvidia_dot1d(
 			locd);
 	} else if (mode == 1) {
 		nvidia_dot1d_shared(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -113,6 +118,7 @@ void nvidia_dot1d(
 			locd);
 	} else if (mode == 2) {
 		nvidia_dot1d_shared_2_16(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -126,6 +132,7 @@ void nvidia_dot1d(
 //	----------------------------
 
 void d_nvidia_dot1d(
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -138,6 +145,7 @@ void d_nvidia_dot1d(
 {
 	if (mode == 0) {
 		d_nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -148,6 +156,7 @@ void d_nvidia_dot1d(
 			dp);
 	} else if (mode == 1) {
 		d_nvidia_dot1d_shared(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -158,6 +167,7 @@ void d_nvidia_dot1d(
 			dp);
 	} else if (mode == 2) {
 		d_nvidia_dot1d_shared_2_16(	//	2 versions : 1x stricte et 1x non stricte
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y,
@@ -173,7 +183,7 @@ void d_nvidia_dot1d(
 
 //	----------------------------
 
-static void verif_intel_papier() {	//verifier f(x) avec les valeurs a la main
+static void verif_intel_papier(uint ACTIVATION) {	//verifier f(x) avec les valeurs a la main
 	uint depart = 0;
 	uint X = 3, T = 2, Y = 4; 
 	float x[] = {
@@ -206,44 +216,45 @@ static void verif_intel_papier() {	//verifier f(x) avec les valeurs a la main
 	};
 	float y[] = {
 		//	## t = 0 ##
-		(float)ACTIV(s[0]),
-		(float)ACTIV(s[1]),
-		(float)ACTIV(s[2]),
-		(float)ACTIV(s[3]),
+		(float)ACTIV(ACTIVATION, s[0]),
+		(float)ACTIV(ACTIVATION, s[1]),
+		(float)ACTIV(ACTIVATION, s[2]),
+		(float)ACTIV(ACTIVATION, s[3]),
 		//	## t = 1 ##
-		(float)ACTIV(s[4]),
-		(float)ACTIV(s[5]),
-		(float)ACTIV(s[6]),
-		(float)ACTIV(s[7]),
+		(float)ACTIV(ACTIVATION, s[4]),
+		(float)ACTIV(ACTIVATION, s[5]),
+		(float)ACTIV(ACTIVATION, s[6]),
+		(float)ACTIV(ACTIVATION, s[7]),
 	};
 	float locd[] = {
-		dACTIV(s[0], y[0]),
-		dACTIV(s[1], y[1]),
-		dACTIV(s[2], y[2]),
-		dACTIV(s[3], y[3]),
+		dACTIV(ACTIVATION, s[0], y[0]),
+		dACTIV(ACTIVATION, s[1], y[1]),
+		dACTIV(ACTIVATION, s[2], y[2]),
+		dACTIV(ACTIVATION, s[3], y[3]),
 
-		dACTIV(s[4], y[4]),
-		dACTIV(s[5], y[5]),
-		dACTIV(s[6], y[6]),
-		dACTIV(s[7], y[7])
+		dACTIV(ACTIVATION, s[4], y[4]),
+		dACTIV(ACTIVATION, s[5], y[5]),
+		dACTIV(ACTIVATION, s[6], y[6]),
+		dACTIV(ACTIVATION, s[7], y[7])
 	};
 
 	float _y[Y*T];
 	float _l[Y*T];
 
 	intel_dot1d(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, _y, p, _l);
 
 	titre("intel dot1d papier");
-	puts("paper y - intel y\n");
+	printf("paper y - intel y (ACTIVATION=%i)\n", ACTIVATION);
 	comparer_lst(y, _y, Y*T, 0.001);
-	puts("paper locd - intel locd\n");
+	printf("paper locd - intel locd (ACTIVATION=%i)\n", ACTIVATION);
 	comparer_lst(locd, _l, Y*T, 0.001);
 };
 
-static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
+static void verif_intel_1e5(uint ACTIVATION) {	//verifier f(x) avec les valeurs a la main
 	uint depart = 0;
 	uint X = 4, T = 3, Y = 7;
 	float * x = lst_rnd(X*T, -1, 1);
@@ -258,6 +269,7 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 	float * dy = zero<float>(T*Y);
 
 	intel_dot1d(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y, p, l);
@@ -270,6 +282,7 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 	FOR(0, i, Y*T) dy[i] = (y[i]-sorties[i]);// / (Y*T);
 
 	d_intel_dot1d(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y, p, l,
@@ -286,6 +299,7 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 		p[i] += _1E5;
 		//
 		intel_dot1d(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y, p, l);
@@ -302,6 +316,7 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 		x[i] += _1E5;
 		//
 		intel_dot1d(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x, y, p, l);
@@ -314,9 +329,9 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 	};
 
 	titre("intel dot1d 1e-5");
-	puts("1e5 dp - intel dp\n");
+	printf("1e5 dp - intel dp (ACTIVATION=%i)\n", ACTIVATION);
 	comparer_lst(_dp, dp, Y*X, 0.001);
-	puts("1e5 dx - intel dx\n");
+	printf("1e5 dx - intel dx (ACTIVATION=%i)\n", ACTIVATION);
 	comparer_lst(_dx, dx, X*T, 0.001);
 
 	free(x);
@@ -331,7 +346,7 @@ static void verif_intel_1e5() {	//verifier f(x) avec les valeurs a la main
 	free(_dx);
 };
 
-static void verif_nvidia_intel()
+static void verif_nvidia_intel(uint ACTIVATION)
 {
 	uint depart = 0;
 	uint X = 3*16, T = 2*16, Y = 4*16;
@@ -346,6 +361,7 @@ static void verif_nvidia_intel()
 	float * dy = zero<float>(T*Y);
 
 	intel_dot1d(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y,
@@ -355,6 +371,7 @@ static void verif_nvidia_intel()
 	FOR(0, i, Y*T) dy[i] = (y[i]-sorties[i]) / (Y*T);
 	//
 	d_intel_dot1d(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y, p, l,
@@ -376,6 +393,7 @@ static void verif_nvidia_intel()
 		CONTROLE_CUDA(cudaMemset(l__d, 0, sizeof(float) * Y*T));
 		//
 		nvidia_dot1d(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x__d, y__d,
@@ -383,6 +401,7 @@ static void verif_nvidia_intel()
 			l__d,
 			mode);
 		d_nvidia_dot1d(
+			ACTIVATION,
 			X, Y,
 			depart, T,
 			x__d, y__d,
@@ -394,19 +413,23 @@ static void verif_nvidia_intel()
 			mode);
 		printf("########## Verif dot1d MODE %i #######\n", mode);
 
-		puts("y__d\n");
+		printf("y__d (ACTIVATION=%i)\n", ACTIVATION);
 		comparer_lst(y, gpu_vers_cpu<float>(y__d, (T)*Y), T*Y, 0.001);
-		puts("l__d\n");
+		printf("l__d (ACTIVATION=%i)\n", ACTIVATION);
 		comparer_lst(l, gpu_vers_cpu<float>(l__d, T*Y), T*Y, 0.001);
-		puts("dp__d\n");
+		printf("dp__d (ACTIVATION=%i)\n", ACTIVATION);
 		comparer_lst(dp, gpu_vers_cpu<float>(dp__d, (X+1)*Y), (X+1)*Y, 0.001);
-		puts("dx__d\n");
+		printf("dx__d (ACTIVATION=%i)\n", ACTIVATION);
 		comparer_lst(dx, gpu_vers_cpu<float>(dx__d, X*T), X*T, 0.001);
 	}
 };
 
 void verif_do1d() {
-	verif_intel_papier();
-	verif_intel_1e5();
-	verif_nvidia_intel();
+	verif_intel_papier(TANH);
+	verif_intel_1e5(TANH);
+	verif_nvidia_intel(TANH);
+
+	verif_intel_papier(LOGISTIC);
+	verif_intel_1e5(LOGISTIC);
+	verif_nvidia_intel(LOGISTIC);
 };

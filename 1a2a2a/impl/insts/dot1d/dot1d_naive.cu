@@ -4,6 +4,7 @@
 #define BLOQUE_Y 32
 
 static __global__ void kerd(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -16,13 +17,14 @@ static __global__ void kerd(	//	2 version : 1 stricte et une non stricte
 	if (_t < T && _y < Y) {
 		float s = p[_y*(X+1) + (X+1-1)];
 		FOR(0, i, X) s += x[(depart+_t)*X + i] * p[_y*(X+1) + i];
-		float a = ACTIV(s);
+		float a = ACTIV(ACTIVATION, s);
 		y[(depart+_t)*Y + _y] = a;
-		locd[(depart+_t)*Y + _y] = dACTIV(s,a);
+		locd[(depart+_t)*Y + _y] = dACTIV(ACTIVATION, s,a);
 	}
 };
 
 void nvidia_dot1d_naive(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -30,6 +32,7 @@ void nvidia_dot1d_naive(	//	2 version : 1 stricte et une non stricte
 	float * locd)
 {
 	kerd<<<dim3(KERD(T, BLOQUE_T), KERD(Y, BLOQUE_Y)), dim3(BLOQUE_T, BLOQUE_T)>>>(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y,
@@ -41,6 +44,7 @@ void nvidia_dot1d_naive(	//	2 version : 1 stricte et une non stricte
 //	============================= Derivation ==============================
 
 static __global__ void kerd_deriv(	//	2 version : 1 stricte et une non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -64,6 +68,7 @@ static __global__ void kerd_deriv(	//	2 version : 1 stricte et une non stricte
 };
 
 void d_nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
+	uint ACTIVATION,
 	uint X, uint Y,
 	uint depart, uint T,
 	float * x, float * y,
@@ -74,6 +79,7 @@ void d_nvidia_dot1d_naive(	//	2 versions : 1x stricte et 1x non stricte
 	float * dp)
 {
 	kerd_deriv<<<dim3(KERD(T, BLOQUE_T), KERD(Y, BLOQUE_Y)), dim3(BLOQUE_T, BLOQUE_T)>>>(
+		ACTIVATION,
 		X, Y,
 		depart, T,
 		x, y,

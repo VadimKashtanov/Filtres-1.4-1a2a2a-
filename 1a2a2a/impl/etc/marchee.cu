@@ -1,32 +1,37 @@
 #include "mdl.cuh"
 
-float          prixs[           PRIXS] = {};
-float            ema[EMA_INTS * PRIXS] = {};
+//	Sources
+float   prixs[PRIXS] = {};
+float   macds[PRIXS] = {};
+float volumes[PRIXS] = {};
+//
+float            ema[EMA_INTS * PRIXS *    1  ] = {};
 float     normalisee[EMA_INTS * PRIXS * N_FLTR] = {};
 float dif_normalisee[EMA_INTS * PRIXS * N_FLTR] = {};
 
-ema_int ema_ints[EMA_INTS] = {
-	{ 0,    1,    1},
-	{ 1,    2,    2},
-	{ 2,    4,    4},
-	{ 3,    6,    6},
-	{ 4,   10,   10},
-	{ 5,   20,   20},
-	{ 6,   50,   50},
-	{ 7,  100,  100},
-	{ 8,  200,  200},
-	{ 9,  500,  500},
-    {10, 1000, 1000}
-};
-
 void charger_les_prixs() {
-	//	extern float      prixs[         PRIXS         ];
-	FILE * fp = fopen("prixs/prixs.bin", "rb");
-	ASSERT(fp != 0);
 	uint __PRIXS;
+	FILE * fp;
+	//
+	fp = fopen("prixs/prixs.bin", "rb");
+	ASSERT(fp != 0);
 	(void)!fread(&__PRIXS, sizeof(uint), 1, fp);
 	ASSERT(__PRIXS == PRIXS);
 	(void)!fread(prixs, sizeof(float), PRIXS, fp);
+	fclose(fp);
+	//
+	fp = fopen("prixs/volumes.bin", "rb");
+	ASSERT(fp != 0);
+	(void)!fread(&__PRIXS, sizeof(uint), 1, fp);
+	ASSERT(__PRIXS == PRIXS);
+	(void)!fread(volumes, sizeof(float), PRIXS, fp);
+	fclose(fp);
+	//
+	fp = fopen("prixs/macds.bin", "rb");
+	ASSERT(fp != 0);
+	(void)!fread(&__PRIXS, sizeof(uint), 1, fp);
+	ASSERT(__PRIXS == PRIXS);
+	(void)!fread(macds, sizeof(float), PRIXS, fp);
 	fclose(fp);
 };
 
@@ -37,14 +42,14 @@ void calculer_ema_norm_diff() {
 	for (uint i=0; i < EMA_INTS; i++) {
 		k[i] = 1.0/(1.0 + (float)ema_ints[i].ema);
 		_k[i] = 1.0 - k[i];
-		ema[i*PRIXS+0] = prixs[0];
+		ema[i*PRIXS+0] = (ema_ints[i].source)[0];
 
 		assert(ema_ints[i].interv <= MAX_INTERVALLE);
 	}
 	//
 	for (uint i=1; i < PRIXS; i++) {
 		for (uint j=0; j < EMA_INTS; j++) {
-			ema[j*PRIXS+i] = prixs[i]*k[j] + ema[j*PRIXS + i-1]*_k[j];
+			ema[j*PRIXS+i] = (ema_ints[j].source)[i]*k[j] + ema[j*PRIXS + i-1]*_k[j];
 		};
 	};
 
@@ -77,26 +82,37 @@ void calculer_ema_norm_diff() {
 };
 
 float *          prixs__d = 0x0;
+float *          macds__d = 0x0;
+float *        volumes__d = 0x0;
 float *            ema__d = 0x0;
 float *     normalisee__d = 0x0;
 float * dif_normalisee__d = 0x0;
 
 void charger_vram_nvidia() {
-	CONTROLE_CUDA(cudaMalloc((void**)&prixs__d, sizeof(float) * PRIXS));
-	CONTROLE_CUDA(cudaMalloc((void**)&ema__d, sizeof(float) * EMA_INTS * PRIXS));
-	CONTROLE_CUDA(cudaMalloc((void**)&normalisee__d, sizeof(float) * EMA_INTS * PRIXS * N_FLTR));
+	CONTROLE_CUDA(cudaMalloc((void**)&  prixs__d, sizeof(float) * PRIXS));
+	CONTROLE_CUDA(cudaMalloc((void**)&  macds__d, sizeof(float) * PRIXS));
+	CONTROLE_CUDA(cudaMalloc((void**)&volumes__d, sizeof(float) * PRIXS));
+	//
+	CONTROLE_CUDA(cudaMalloc((void**)&           ema__d, sizeof(float) * EMA_INTS * PRIXS *    1  ));
+	CONTROLE_CUDA(cudaMalloc((void**)&    normalisee__d, sizeof(float) * EMA_INTS * PRIXS * N_FLTR));
 	CONTROLE_CUDA(cudaMalloc((void**)&dif_normalisee__d, sizeof(float) * EMA_INTS * PRIXS * N_FLTR));
 	//
-	CONTROLE_CUDA(cudaMemcpy(         prixs__d,          prixs, sizeof(float) * PRIXS,                     cudaMemcpyHostToDevice));
-	CONTROLE_CUDA(cudaMemcpy(           ema__d,            ema, sizeof(float) * EMA_INTS * PRIXS,          cudaMemcpyHostToDevice));
+	CONTROLE_CUDA(cudaMemcpy(  prixs__d,   prixs, sizeof(float) * PRIXS, cudaMemcpyHostToDevice));
+	CONTROLE_CUDA(cudaMemcpy(  macds__d,   macds, sizeof(float) * PRIXS, cudaMemcpyHostToDevice));
+	CONTROLE_CUDA(cudaMemcpy(volumes__d, volumes, sizeof(float) * PRIXS, cudaMemcpyHostToDevice));
+	//
+	CONTROLE_CUDA(cudaMemcpy(           ema__d,            ema, sizeof(float) * EMA_INTS * PRIXS *    1  , cudaMemcpyHostToDevice));
 	CONTROLE_CUDA(cudaMemcpy(    normalisee__d,     normalisee, sizeof(float) * EMA_INTS * PRIXS * N_FLTR, cudaMemcpyHostToDevice));
 	CONTROLE_CUDA(cudaMemcpy(dif_normalisee__d, dif_normalisee, sizeof(float) * EMA_INTS * PRIXS * N_FLTR, cudaMemcpyHostToDevice));
 };
 
 void     liberer_cudamalloc() {
-	CONTROLE_CUDA(cudaFree(prixs__d));
-	CONTROLE_CUDA(cudaFree(ema__d));
-	CONTROLE_CUDA(cudaFree(normalisee__d));
+	CONTROLE_CUDA(cudaFree(  prixs__d));
+	CONTROLE_CUDA(cudaFree(  macds__d));
+	CONTROLE_CUDA(cudaFree(volumes__d));
+	//
+	CONTROLE_CUDA(cudaFree(           ema__d));
+	CONTROLE_CUDA(cudaFree(    normalisee__d));
 	CONTROLE_CUDA(cudaFree(dif_normalisee__d));
 };
 
@@ -104,6 +120,9 @@ void charger_tout() {
 	printf("charger_les_prixs : ");      MESURER(charger_les_prixs());
 	printf("calculer_ema_norm_diff : "); MESURER(calculer_ema_norm_diff());
 	printf("charger_les_prixs : ");      MESURER(charger_vram_nvidia());
+	printf("Méga-octés = %f Mo\n",
+		(float)(PRIXS*(sizeof(float)*3 + EMA_INTS + EMA_INTS*N_FLTR + EMA_INTS*N_FLTR)) / 1e6f
+	);
 };
 
 void liberer_tout() {

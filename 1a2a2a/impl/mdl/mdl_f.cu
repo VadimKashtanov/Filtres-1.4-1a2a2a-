@@ -39,6 +39,7 @@ static void mdl_f_patron(
 	FOR(1, c, C) {
 		if (perceptron_mode == -1) {
 			intel_dot1d(
+				mdl->activation[c],
 				mdl->ST[c-1], mdl->ST[c],
 				t0, (t1-t0),
 				mdl->y[c-1], mdl->y[c],
@@ -46,6 +47,7 @@ static void mdl_f_patron(
 				mdl->locd[c]);
 		} else {
 			nvidia_dot1d(
+				mdl->activation[c],
 				mdl->ST[c-1], mdl->ST[c],
 				t0, (t1-t0),
 				mdl->y__d[c-1], mdl->y__d[c],

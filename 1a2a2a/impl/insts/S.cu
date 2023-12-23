@@ -27,7 +27,7 @@ void verifier_S() {
 		SCORE(y[depart+3], prixs[depart+L+3], prixs[depart+3]) + \
 		SCORE(y[depart+4], prixs[depart+L+4], prixs[depart+4]) + \
 		SCORE(y[depart+5], prixs[depart+L+5], prixs[depart+5]) + \
-		SCORE(y[depart+6], prixs[depart+L+6], prixs[depart+6]));// / T;
+		SCORE(y[depart+6], prixs[depart+L+6], prixs[depart+6])) / T*100;
 	float pred = (
 		(float)(signe(y[depart+0]) == signe(prixs[depart+L+0]/prixs[depart+0]-1)) + \
 		(float)(signe(y[depart+1]) == signe(prixs[depart+L+1]/prixs[depart+1]-1)) + \
@@ -37,13 +37,13 @@ void verifier_S() {
 		(float)(signe(y[depart+5]) == signe(prixs[depart+L+5]/prixs[depart+5]-1)) + \
 		(float)(signe(y[depart+6]) == signe(prixs[depart+L+6]/prixs[depart+6]-1))) / T;
 	float dy[depart+T];
-	dy[depart+0]=dSCORE(y[depart+0], prixs[depart+L+0], prixs[depart+0]);// / T;
-	dy[depart+1]=dSCORE(y[depart+1], prixs[depart+L+1], prixs[depart+1]);// / T; 
-	dy[depart+2]=dSCORE(y[depart+2], prixs[depart+L+2], prixs[depart+2]);// / T;
-	dy[depart+3]=dSCORE(y[depart+3], prixs[depart+L+3], prixs[depart+3]);// / T;
-	dy[depart+4]=dSCORE(y[depart+4], prixs[depart+L+4], prixs[depart+4]);// / T;
-	dy[depart+5]=dSCORE(y[depart+5], prixs[depart+L+5], prixs[depart+5]);// / T;
-	dy[depart+6]=dSCORE(y[depart+6], prixs[depart+L+6], prixs[depart+6]);// / T;
+	dy[depart+0]=dSCORE(y[depart+0], prixs[depart+L+0], prixs[depart+0]) / T*100;
+	dy[depart+1]=dSCORE(y[depart+1], prixs[depart+L+1], prixs[depart+1]) / T*100; 
+	dy[depart+2]=dSCORE(y[depart+2], prixs[depart+L+2], prixs[depart+2]) / T*100;
+	dy[depart+3]=dSCORE(y[depart+3], prixs[depart+L+3], prixs[depart+3]) / T*100;
+	dy[depart+4]=dSCORE(y[depart+4], prixs[depart+L+4], prixs[depart+4]) / T*100;
+	dy[depart+5]=dSCORE(y[depart+5], prixs[depart+L+5], prixs[depart+5]) / T*100;
+	dy[depart+6]=dSCORE(y[depart+6], prixs[depart+L+6], prixs[depart+6]) / T*100;
 
 	titre("Verification SCORES");
 

@@ -2,6 +2,11 @@
 
 #include "../../impl_tmpl/tmpl_etc.cu"
 
+char * activ_str[2] = {
+	"tanh",
+	"logistique"
+};
+
 void plumer_mdl(Mdl_t * mdl) {
 	printf("\033[4m Plume mdl\033[0m\n");
 	printf("Filtres : %i\n", mdl->ST[0]);
@@ -11,7 +16,7 @@ void plumer_mdl(Mdl_t * mdl) {
 	uint POIDS = 0;
 	FOR(1, c, C) {
 		POIDS += poids_couche(mdl, c);
-		printf("%2.i | Y=%i (P=%i)\n", c, mdl->ST[c], poids_couche(mdl, c));
+		printf("%2.i | Y=%i (P=%i) (activ=%s)\n", c, mdl->ST[c], poids_couche(mdl, c), activ_str[mdl->activation[c]]);
 	}
 	printf("Quantitée poids = %i\n", POIDS);
 	printf(" --- fin plume mdl ---\n");

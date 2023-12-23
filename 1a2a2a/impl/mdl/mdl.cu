@@ -11,10 +11,12 @@ uint entrees_couche(Mdl_t * mdl, uint c) {
 }
 
 PAS_OPTIMISER()
-Mdl_t * cree_mdl(uint * ST, uint bloques, uint f_par_bloque, uint * lignes) {
+Mdl_t * cree_mdl(uint * ST, uint * activation, uint bloques, uint f_par_bloque, uint * lignes) {
 	ASSERT(ST[C-1] == 1);
 	
 	Mdl_t * mdl = alloc<Mdl_t>(1);
+
+	mdl->activation = copier<uint>(activation, C);
 
 	mdl->ST = copier<uint>(ST, C);
 	mdl->ST__d = cpu_vers_gpu<uint>(ST, C);
@@ -170,6 +172,7 @@ void liberer_mdl(Mdl_t * mdl) {
 	//
 	free(mdl->lignes);
 	free(mdl->ST);
+	free(mdl->activation);
 	free(mdl->f);
 	free(mdl->dif_f);
 	//

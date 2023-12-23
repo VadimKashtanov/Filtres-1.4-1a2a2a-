@@ -8,10 +8,12 @@ Mdl_t * ouvrire_mdl(char * fichier) {
 	uint _C;
 	FREAD(&_C, sizeof(uint), 1, fp);
 	//
-	uint * ST, * lignes;
+	uint * ST, * lignes, * activation;
 	uint bloques, f_par_bloques;
 	ST = (uint*)malloc(sizeof(uint) * C);
 	FREAD(ST, sizeof(uint), C, fp);
+	activation = (uint*)malloc(sizeof(uint) * C);
+	FREAD(activation, sizeof(uint), C, fp);
 	FREAD(&bloques, sizeof(uint), 1, fp);
 	FREAD(&f_par_bloques, sizeof(uint), 1, fp);
 	lignes = (uint*)malloc(sizeof(uint) * bloques);
@@ -19,6 +21,7 @@ Mdl_t * ouvrire_mdl(char * fichier) {
 	//
 	Mdl_t * mdl = cree_mdl(
 		ST,
+		activation,
 		bloques,
 		f_par_bloques,
 		lignes
@@ -46,6 +49,7 @@ void ecrire_mdl(Mdl_t * mdl, char * fichier) {
 	uint _C = C;
 	FWRITE(&_C, sizeof(uint), 1, fp);
 	FWRITE(mdl->ST, sizeof(uint), C, fp);
+	FWRITE(mdl->activation, sizeof(uint), C, fp);
 	FWRITE(&mdl->bloques, sizeof(uint), 1, fp);
 	FWRITE(&mdl->f_par_bloque, sizeof(uint), 1, fp);
 	FWRITE(mdl->lignes, sizeof(uint), mdl->bloques, fp);

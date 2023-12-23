@@ -2,6 +2,12 @@
 
 #include "../../impl_tmpl/tmpl_etc.cu"
 
+//
+//	//
+//	//	//	2*y-1  ===> y tout court
+//	//
+//
+
 static float filtre(float * x, float * dif_x, float * f, float * dif_f, float * locd_s, float * locd_d) {
 	float s = 0, d = 0;
 	FOR(0, i, N-1) {
@@ -15,8 +21,8 @@ static float filtre(float * x, float * dif_x, float * f, float * dif_f, float * 
 
 	float y = expf(-s*s -d*d);
 
-	locd_s[0] = -4*y*s;
-	locd_d[0] = -4*y*d;
+	locd_s[0] = -2*2*s*y;
+	locd_d[0] = -2*2*d*y;
 
 	return 2*y-1;
 };
